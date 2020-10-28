@@ -5,32 +5,61 @@
 package peanutRedis
 
 import (
+	"fmt"
+	"reflect"
 	"testing"
 )
 
-func TestLib(t *testing.T)  {
-
-}
 
 func TestGetString(t *testing.T)  {
+
+	 var testSlice = []string{
+	 	"get a",
+	 	"get b",
+	 	"get c",
+	 	"getset getset 1",
+	 	"getset getset 1",
+	 }
 	var client redisCli
-	result,err := client.conn("localhost",6379).query("get a")
-	if string(result.([]uint8)) != "1" {
-		t.Fatal("err")
+	conn := client.conn("localhost",6379)
+	for _,q := range testSlice {
+		result,err := conn.query(q)
+		if err != nil {
+			t.Fatal(err.Error())
+		}
+		fmt.Println(string(result.([]uint8)))
 	}
-	if err != nil {
-		t.Fatal(err.Error())
-	}
+	conn.close()
 }
 
 func TestSetString(t *testing.T)  {
+	var testSlice = []string{
+		"set a 1",
+		"set b 2",
+		"set c 3",
+		"del a",
+	}
+
 	var client redisCli
-	result,err := client.conn("localhost",6379).query("set b 2")
-	check := string(result.([]uint8))
-	if check != "OK" {
-		t.Fatal("err")
+	conn := client.conn("localhost",6379)
+	for _,q := range testSlice {
+		result,err := conn.query(q)
+		checkType := reflect.TypeOf(result).String()
+		var check interface{}
+		switch checkType {
+		case "int64":
+			fmt.Println(result)
+		case "[]uint8":
+			check = string(result.([]uint8))
+			fmt.Println(check)
+		default:
+
+		}
+
+		if err != nil {
+			t.Fatal(err.Error())
+		}
 	}
-	if err != nil {
-		t.Fatal(err.Error())
-	}
+	conn.close()
 }
+

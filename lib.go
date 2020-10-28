@@ -66,9 +66,12 @@ func (rc redisCli) query(command string) (interface{},error){
 		//键不存在
 		return nil,err
 	}
-	defer rc.Conn.conn.Close()
 
 	return res,err
+}
+
+func (rc redisCli) close()  {
+	defer rc.Conn.conn.Close()
 }
 
 func Int16ToString(c int16) string {
@@ -78,6 +81,7 @@ func Int16ToString(c int16) string {
 func (rc redisCli) readLineGetSizeAndReply() (interface{}, error) {
 	r := bufio.NewReader(rc.Conn.conn)
 	p, err := r.ReadSlice('\n')
+	//减去 $ 和\r两个字节  例如 $5\r\n 此时p为$5\r p[i] == \r
 	p = p[:len(p)-2]
 	if err == bufio.ErrBufferFull {
 		buf := append([]byte{}, p...)
@@ -110,17 +114,18 @@ func (rc redisCli) readLineGetSizeAndReply() (interface{}, error) {
 	case ':':
 		return parseInt(p[1:])
 	case '$':
-		//减去 $ 和\r两个字节  例如 $5\r\n 此时p为$5\r p[i] == \r
-		i := len(p) - 2
-		res := p[:i]
-		var n int
-		for _, b := range res[1:] {
-			n *= 10
-			n += int(b - '0')
+
+		if len(p) > 0 {
+			var n int
+			for _, b := range p[1:] {
+				n *= 10
+				n += int(b - '0')
+			}
+			rs := make([]byte, n)
+			_, _ = io.ReadFull(r, rs)
+			return rs,nil
 		}
-		rs := make([]byte, n)
-		_, _ = io.ReadFull(r, rs)
-		return rs,nil
+
 	case '*':
 		n, err := parseLen(p[1:])
 		if n < 0 || err != nil {
