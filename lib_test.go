@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"reflect"
 	"testing"
+	"time"
 )
 
 
@@ -59,6 +60,29 @@ func TestSetString(t *testing.T)  {
 		if err != nil {
 			t.Fatal(err.Error())
 		}
+	}
+	conn.close()
+}
+
+/**
+	测试发送心跳
+ */
+func TestPING(t *testing.T)  {
+	var testSlice = []string{
+		"PING",
+	}
+	var client redisCli
+	conn := client.conn("localhost",6379)
+	time.Sleep(time.Duration(30)*time.Second)
+	for _,q := range testSlice {
+		result,err := conn.query(q)
+		if err != nil {
+			t.Fatal(err.Error())
+		}
+		if string(result.([]uint8)) != "PONG" {
+			t.Fatal(err.Error())
+		}
+		t.Log(string(result.([]uint8)))
 	}
 	conn.close()
 }
