@@ -1,6 +1,7 @@
 # peanutgredis
 
-使用golang socket 实现的redis客户端，遵循redis标准协议
+使用golang socket 实现的redis客户端，遵循redis标准协议。
+全部功能实现后，将增加完整注释。
 
 - [协议文档](http://redisdoc.com/topic/protocol.html#id8)
 # 实现列表
