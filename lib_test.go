@@ -28,7 +28,11 @@ func TestGetString(t *testing.T)  {
 		if err != nil {
 			t.Fatal(err.Error())
 		}
-		fmt.Println(string(result.([]uint8)))
+		if result != nil && reflect.TypeOf(result).String() == "[]uint8" {
+			fmt.Println(string(result.([]uint8)))
+		} else {
+			fmt.Println(result)
+		}
 	}
 	conn.close()
 }
@@ -87,3 +91,28 @@ func TestPING(t *testing.T)  {
 	conn.close()
 }
 
+/**
+	测试断线重连
+ */
+func TestReConn(t *testing.T)  {
+
+	var testSlice = []string{
+		"get a",
+		"get b",
+		"get c",
+		"getset getset 1",
+		"getset getset 1",
+	}
+	var client redisCli
+	conn := client.conn("localhost",6379)
+	for _,q := range testSlice {
+		_,err := conn.query(q)
+		//conn.close()
+		if err != nil {
+			t.Fatal(err.Error())
+		}
+		//time.Sleep(time.Duration(3)*time.Second)
+		//fmt.Println(string(result.([]uint8)))
+	}
+	conn.close()
+}

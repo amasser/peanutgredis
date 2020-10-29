@@ -30,6 +30,7 @@ type Query struct {
 
 type Conn struct {
 	conn *net.TCPConn
+	dsn string
 }
 
 type redisCli struct {
@@ -37,16 +38,55 @@ type redisCli struct {
 	Conn
 }
 
+
+
+//var reConn = make(chan redisCli)
+//var ConnChan = make(chan redisCli)
+
+func init()  {
+
+	//go func() {
+	//	for {
+	//		time.Sleep(time.Duration(5)*time.Second)
+	//		select {
+	//		case rc := <-reConn:
+	//			tcpAddr, _ := net.ResolveTCPAddr(TCP4, rc.Conn.dsn)
+	//			rc.Conn.conn, _ = net.DialTCP(TCP4, nil, tcpAddr)
+	//			ConnChan<-rc
+	//			fmt.Print("我重新连接了，啊")
+	//		default:
+	//			fmt.Println("连接好像正常，啊卢本伟牛逼")
+	//		}
+	//	}
+	//}()
+}
+
 func (rc redisCli) conn(host string, port int16) redisCli {
-	tcpAddr, _ := net.ResolveTCPAddr(TCP4, host + ":" + Int16ToString(port))
+	rc.Conn.dsn = host + ":" + Int16ToString(port)
+	tcpAddr, _ := net.ResolveTCPAddr(TCP4, rc.Conn.dsn)
 	rc.Conn.conn, _ = net.DialTCP(TCP4, nil, tcpAddr)
 	return rc
 }
 
 func (rc redisCli) query(command string) (interface{},error){
 
+	//defer func() {
+	//
+	//	if r := recover(); r != nil {
+	//		fmt.Printf("捕获到的错误：%s\n", r)
+	//		//if rc.Conn.conn == nil {
+	//
+	//		//}
+	//	}
+	//}()
 	commandSlice := strings.Split(command, " ")
 	rc.Query.command = "*" + strconv.Itoa(len(commandSlice)) + "\r\n"
+	//check,_:=rc.query("PING")
+	//if  string(check.([]uint8)) != "PONG" {
+	//	reConn<-rc
+	//	rc = <-ConnChan
+	//	fmt.Println("我又让别人连上了")
+	//}
 
 	for _, v := range commandSlice {
 
@@ -82,7 +122,11 @@ func (rc redisCli) readLineGetSizeAndReply() (interface{}, error) {
 	r := bufio.NewReader(rc.Conn.conn)
 	p, err := r.ReadSlice('\n')
 	//减去 $ 和\r两个字节  例如 $5\r\n 此时p为$5\r p[i] == \r
+	if string(p[1:3]) == "-1" {
+		return nil,nil
+	}
 	p = p[:len(p)-2]
+
 	if err == bufio.ErrBufferFull {
 		buf := append([]byte{}, p...)
 		//如果缓存区读完后仍然没有找到\n 则报ErrBufferFull错误，此时继续读取buff直到找到\n
@@ -114,7 +158,6 @@ func (rc redisCli) readLineGetSizeAndReply() (interface{}, error) {
 	case ':':
 		return parseInt(p[1:])
 	case '$':
-
 		if len(p) > 0 {
 			var n int
 			for _, b := range p[1:] {
