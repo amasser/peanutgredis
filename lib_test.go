@@ -77,7 +77,7 @@ func TestPING(t *testing.T)  {
 	}
 	var client redisCli
 	conn := client.conn("localhost",6379)
-	time.Sleep(time.Duration(30)*time.Second)
+	time.Sleep(time.Duration(5)*time.Second)
 	for _,q := range testSlice {
 		result,err := conn.query(q)
 		if err != nil {
@@ -107,7 +107,6 @@ func TestReConn(t *testing.T)  {
 	conn := client.conn("localhost",6379)
 	for _,q := range testSlice {
 		_,err := conn.query(q)
-		//conn.close()
 		if err != nil {
 			t.Fatal(err.Error())
 		}

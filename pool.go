@@ -4,11 +4,16 @@
  */
 package peanutRedis
 
-import "net"
+import (
+	"net"
+	"time"
+)
 
 const POOL_MEMBER  = 2
 
-var pool = make(chan *net.TCPConn,POOL_MEMBER)
+
+
+var POOL = make(chan *net.TCPConn,POOL_MEMBER)
 
 type PoolInterface interface {
 	Get() *net.TCPConn
@@ -18,40 +23,47 @@ type PoolInterface interface {
 /**
 	假装这是连接池
  */
-type RedisPool struct {}
+type RedisPool struct {
+	pool chan *net.TCPConn
+}
 
-func ( rp RedisPool) Get(dsn string) *net.TCPConn {
-	connMap := <-pool
-	if connMap == nil{
+func ( rp *RedisPool) Get(dsn string) *net.TCPConn {
+	if len(rp.pool) == 0 {
+		rp.pool = POOL
 		go rp.iniSet(dsn)
 	}
 	for  {
 		select {
-		case co:=<-pool:
+		case co:=<-rp.pool:
+			//fmt.Println(len(rp.pool))
+			time.Sleep(time.Duration(2)*time.Second)
 			return co
+			break
 		default:
 
 		}
 	}
 }
 
-func ( rp RedisPool) iniSet(dsn string) error {
-	tcpAddr, err := net.ResolveTCPAddr(TCP4, dsn)
-	if err != nil{
-		return err
+func ( rp *RedisPool) iniSet(dsn string) error {
+	for i:=1 ;i<=2;i++ {
+		tcpAddr, err := net.ResolveTCPAddr(TCP4, dsn)
+		if err != nil{
+			return err
+		}
+		conn, err := net.DialTCP(TCP4, nil, tcpAddr)
+		if err != nil{
+			return err
+		}
+		err = conn.SetKeepAlive(true)
+		if err != nil{
+			return err
+		}
+		rp.pool<-conn
 	}
-	conn, err := net.DialTCP(TCP4, nil, tcpAddr)
-	if err != nil{
-		return err
-	}
-	err = conn.SetKeepAlive(true)
-	if err != nil{
-		return err
-	}
-	pool<-conn
 	return  nil
 }
 
-func ( rp RedisPool) close( b *net.TCPConn)  {
-	pool<-b
+func ( rp *RedisPool) close( b *net.TCPConn)  {
+	rp.pool<-b
 }

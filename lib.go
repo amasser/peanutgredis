@@ -42,7 +42,7 @@ type redisCli struct {
 	Conn
 }
 
-func (rc redisCli) conn(host string, port int16) redisCli {
+func (rc *redisCli) conn(host string, port int16) *redisCli {
 
 	rc.Conn.dsn = host + ":" + Int16ToString(port)
 	pool := &RedisPool{}
@@ -51,7 +51,7 @@ func (rc redisCli) conn(host string, port int16) redisCli {
 	return rc
 }
 
-func (rc redisCli) query(command string) (interface{},error){
+func (rc *redisCli) query(command string) (interface{},error){
 
 	commandSlice := strings.Split(command, " ")
 	rc.Query.command = "*" + strconv.Itoa(len(commandSlice)) + "\r\n"
@@ -74,19 +74,19 @@ func (rc redisCli) query(command string) (interface{},error){
 		//键不存在
 		return nil,err
 	}
-
+	//rc.pool.close(rc.Conn.conn)
 	return res,err
 }
 
-func (rc redisCli) close()  {
-	 defer rc.pool.close(rc.Conn.conn)
+func (rc *redisCli) close()  {
+	 rc.pool.close(rc.Conn.conn)
 }
 
 func Int16ToString(c int16) string {
 	return strconv.FormatInt(int64(c), 10)
 }
 
-func (rc redisCli) readLineGetSizeAndReply() (interface{}, error) {
+func (rc *redisCli) readLineGetSizeAndReply() (interface{}, error) {
 	r := bufio.NewReader(rc.Conn.conn)
 	p, err := r.ReadSlice('\n')
 	//减去 $ 和\r两个字节  例如 $5\r\n 此时p为$5\r p[i] == \r
