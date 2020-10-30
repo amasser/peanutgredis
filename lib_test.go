@@ -22,9 +22,9 @@ func TestGetString(t *testing.T)  {
 	 	"getset getset 1",
 	 }
 	var client RedisCli
-	conn := client.conn("localhost",6379)
+	conn := client.Connect("localhost",6379)
 	for _,q := range testSlice {
-		result,err := conn.query(q)
+		result,err := conn.Q(q)
 		if err != nil {
 			t.Fatal(err.Error())
 		}
@@ -48,9 +48,9 @@ func TestSetString(t *testing.T)  {
 	}
 
 	var client RedisCli
-	conn := client.conn("localhost",6379)
+	conn := client.Connect("localhost",6379)
 	for _,q := range testSlice {
-		result,err := conn.query(q)
+		result,err := conn.Q(q)
 		checkType := reflect.TypeOf(result).String()
 		var check interface{}
 		switch checkType {
@@ -78,10 +78,10 @@ func TestPING(t *testing.T)  {
 		"PING",
 	}
 	var client RedisCli
-	conn := client.conn("localhost",6379)
+	conn := client.Connect("localhost",6379)
 	time.Sleep(time.Duration(5)*time.Second)
 	for _,q := range testSlice {
-		result,err := conn.query(q)
+		result,err := conn.Q(q)
 		if err != nil {
 			t.Fatal(err.Error())
 		}
@@ -106,9 +106,9 @@ func TestReConn(t *testing.T)  {
 		"getset getset 1",
 	}
 	var client RedisCli
-	conn := client.conn("localhost",6379)
+	conn := client.Connect("localhost",6379)
 	for _,q := range testSlice {
-		_,err := conn.query(q)
+		_,err := conn.Q(q)
 		if err != nil {
 			t.Fatal(err.Error())
 		}

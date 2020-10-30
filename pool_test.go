@@ -19,8 +19,8 @@ func TestPool(t *testing.T)  {
 
 	for _,q := range testSlice {
 
-		conn := client.conn("localhost",6379)
-		result,err := conn.query(q)
+		conn := client.Connect("localhost",6379)
+		result,err := conn.Q(q)
 		if err != nil {
 			t.Fatal(err.Error())
 		}

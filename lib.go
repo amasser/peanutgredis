@@ -27,7 +27,7 @@ type RedisCli struct {
 	Conn
 }
 
-func (rc *RedisCli) conn(host string, port int16) *RedisCli {
+func (rc *RedisCli) Connect(host string, port int16) *RedisCli {
 
 	rc.Conn.dsn = GetDsn(host,port)
 
@@ -40,7 +40,7 @@ func (rc *RedisCli) conn(host string, port int16) *RedisCli {
 	return rc
 }
 
-func (rc *RedisCli) query(command string) (interface{}, error) {
+func (rc *RedisCli) Q(command string) (interface{}, error) {
 	commandSlice := strings.Split(command, " ")
 	rc.Query.command = string(multi_bulk_reply) + strconv.Itoa(len(commandSlice)) + redis_separator
 
