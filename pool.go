@@ -10,8 +10,6 @@ import (
 
 const POOL_MEMBER  = 2
 
-
-
 var POOL = make(chan *net.TCPConn,POOL_MEMBER)
 
 type PoolInterface interface {
@@ -20,7 +18,7 @@ type PoolInterface interface {
 }
 
 /**
-	假装这是连接池
+	连接池
  */
 type RedisPool struct {
 	pool chan *net.TCPConn
