@@ -5,6 +5,10 @@
 package peanutRedis
 
 const TCP4 = "tcp4"          //ipv4
+const POOL_MEMBER  = 2       //连接池连接数量
+
+
+
 const status_reply = '+'     //状态回复
 const error_reply = '-'      //错误回复
 const integer_reply = ':'    //整数回复

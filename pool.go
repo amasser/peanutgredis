@@ -8,8 +8,6 @@ import (
 	"net"
 )
 
-const POOL_MEMBER  = 2
-
 var POOL = make(chan *net.TCPConn,POOL_MEMBER)
 
 type PoolInterface interface {
@@ -18,7 +16,7 @@ type PoolInterface interface {
 }
 
 /**
-	连接池
+	connected pool
  */
 type RedisPool struct {
 	pool chan *net.TCPConn
@@ -63,7 +61,9 @@ func ( rp *RedisPool) IniSet(dsn string) error {
 }
 
 func ( rp *RedisPool) close( b *net.TCPConn)  {
-	rp.pool<-b
+	if len(rp.pool) < POOL_MEMBER {
+		rp.pool<-b
+	}
 }
 
 
