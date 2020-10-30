@@ -44,7 +44,7 @@ func ( rp *RedisPool) Get(dsn string) *net.TCPConn {
 }
 
 func ( rp *RedisPool) IniSet(dsn string) error {
-	for i:=0 ;i<=2;i++ {
+	for i:=1 ;i<=2;i++ {
 		tcpAddr, err := net.ResolveTCPAddr(TCP4, dsn)
 		if err != nil{
 			return err
@@ -53,10 +53,10 @@ func ( rp *RedisPool) IniSet(dsn string) error {
 		if err != nil{
 			return err
 		}
-		err = conn.SetKeepAlive(true)
-		if err != nil{
-			return err
-		}
+		//err = conn.SetKeepAlive(true)
+		//if err != nil{
+		//	return err
+		//}
 		rp.pool<-conn
 	}
 	return  nil

@@ -13,6 +13,7 @@ func TestPool(t *testing.T)  {
 	var testSlice = []string{
 		"PING",
 		"PING",
+		"PING",
 	}
 	var client redisCli
 

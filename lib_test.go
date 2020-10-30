@@ -34,15 +34,17 @@ func TestGetString(t *testing.T)  {
 			fmt.Println(result)
 		}
 	}
-	conn.close()
+	defer func() {
+		conn.close()
+	}()
 }
 
 func TestSetString(t *testing.T)  {
 	var testSlice = []string{
 		"set a 1",
 		"set b 2",
-		"set c 3",
-		"del a",
+		//"set c 3",
+		//"del a",
 	}
 
 	var client redisCli

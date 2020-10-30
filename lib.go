@@ -52,7 +52,6 @@ func (rc *redisCli) conn(host string, port int16) *redisCli {
 }
 
 func (rc *redisCli) query(command string) (interface{},error){
-
 	commandSlice := strings.Split(command, " ")
 	rc.Query.command = "*" + strconv.Itoa(len(commandSlice)) + "\r\n"
 
@@ -63,6 +62,7 @@ func (rc *redisCli) query(command string) (interface{},error){
 		rc.Query.command += v + "\r\n"
 
 	}
+
 	_, err := rc.Conn.conn.Write([]byte(rc.Query.command))
 
 	if err != nil {
@@ -74,7 +74,7 @@ func (rc *redisCli) query(command string) (interface{},error){
 		//键不存在
 		return nil,err
 	}
-	rc.close()
+
 	return res,err
 }
 
