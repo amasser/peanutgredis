@@ -27,6 +27,8 @@ type RedisCli struct {
 	Conn
 }
 
+var Redis RedisCli
+
 func (rc *RedisCli) Connect(host string, port int16) *RedisCli {
 
 	rc.Conn.dsn = GetDsn(host,port)
