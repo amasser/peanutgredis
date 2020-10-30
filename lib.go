@@ -12,28 +12,13 @@ import (
 	"strings"
 )
 
-/**
-	状态回复（status reply）的第一个字节是 "+"
-
-	错误回复（error reply）的第一个字节是 "-"
-
-	整数回复（integer reply）的第一个字节是 ":"
-
-	批量回复（bulk reply）的第一个字节是 "$"
-
-	多条批量回复（multi bulk reply）的第一个字节是 "*" 相当于 $*n
- */
-
-
-const TCP4 = "tcp4"
-
 type Query struct {
 	command string
 }
 
 type Conn struct {
 	conn *net.TCPConn
-	dsn string
+	dsn  string
 	pool *RedisPool
 }
 
@@ -44,55 +29,56 @@ type redisCli struct {
 
 func (rc *redisCli) conn(host string, port int16) *redisCli {
 
-	rc.Conn.dsn = host + ":" + Int16ToString(port)
+	rc.Conn.dsn = GetDsn(host,port)
+
 	pool := &RedisPool{}
-	rc.Conn.conn =  pool.Get(rc.Conn.dsn)
-	rc.Conn.pool =  pool
+
+	rc.Conn.conn = pool.Get(rc.Conn.dsn)
+
+	rc.Conn.pool = pool
+
 	return rc
 }
 
-func (rc *redisCli) query(command string) (interface{},error){
+func (rc *redisCli) query(command string) (interface{}, error) {
 	commandSlice := strings.Split(command, " ")
-	rc.Query.command = "*" + strconv.Itoa(len(commandSlice)) + "\r\n"
+	rc.Query.command = string(multi_bulk_reply) + strconv.Itoa(len(commandSlice)) + redis_separator
 
 	for _, v := range commandSlice {
 
-		rc.Query.command += "$"
-		rc.Query.command += strconv.Itoa(len(v)) + "\r\n"
-		rc.Query.command += v + "\r\n"
+		rc.Query.command += string(bulk_reply)
+		rc.Query.command += strconv.Itoa(len(v)) + redis_separator
+		rc.Query.command += v + redis_separator
 
 	}
 
-	_, err := rc.Conn.conn.Write([]byte(rc.Query.command))
+	ln, err := rc.Conn.conn.Write([]byte(rc.Query.command))
 
-	if err != nil {
-		return nil,err
+	if err != nil || ln == 0{
+		return nil, err
 	}
 
 	res, err := rc.readLineGetSizeAndReply()
 	if res == nil {
 		//键不存在
-		return nil,err
+		return nil, err
 	}
 
-	return res,err
+	return res, err
 }
 
-func (rc *redisCli) close()  {
-	 rc.pool.close(rc.Conn.conn)
-	 rc.Conn.conn = nil
-}
-
-func Int16ToString(c int16) string {
-	return strconv.FormatInt(int64(c), 10)
+func (rc *redisCli) close() {
+	rc.pool.close(rc.Conn.conn)
+	rc.Conn.conn = nil
 }
 
 func (rc *redisCli) readLineGetSizeAndReply() (interface{}, error) {
+
 	r := bufio.NewReader(rc.Conn.conn)
-	p, err := r.ReadSlice('\n')
+	p, err := r.ReadSlice(redis_cut)
 	//减去 $ 和\r两个字节  例如 $5\r\n 此时p为$5\r p[i] == \r
 	if string(p[1:3]) == "-1" {
-		return nil,nil
+		return nil, nil
 	}
 	p = p[:len(p)-2]
 
@@ -101,7 +87,7 @@ func (rc *redisCli) readLineGetSizeAndReply() (interface{}, error) {
 		//如果缓存区读完后仍然没有找到\n 则报ErrBufferFull错误，此时继续读取buff直到找到\n
 		//如果找到最后任然没有找到\n 则err非空
 		for err == bufio.ErrBufferFull {
-			p, err = r.ReadSlice('\n')
+			p, err = r.ReadSlice(redis_cut)
 			buf = append(buf, p...)
 		}
 		p = buf
@@ -111,7 +97,9 @@ func (rc *redisCli) readLineGetSizeAndReply() (interface{}, error) {
 		return nil, nil
 	}
 	switch p[0] {
-	case '+':
+
+	case status_reply:
+
 		switch string(p[1:]) {
 		case "OK":
 
@@ -122,86 +110,41 @@ func (rc *redisCli) readLineGetSizeAndReply() (interface{}, error) {
 		default:
 			return p[1:], nil
 		}
-	case '-':
+
+	case error_reply:
+
 		return p[1:], nil
-	case ':':
-		return parseInt(p[1:])
-	case '$':
+
+	case integer_reply:
+
+		return ParseInt(p[1:])
+
+	case bulk_reply:
+
 		if len(p) > 0 {
-			var n int
-			for _, b := range p[1:] {
-				n *= 10
-				n += int(b - '0')
+			n, err := ParseLen(p)
+			if err != nil {
+				return nil,err
 			}
 			rs := make([]byte, n)
-			_, _ = io.ReadFull(r, rs)
-			return rs,nil
+			ln, err := io.ReadFull(r, rs)
+			if err != nil || ln == 0 {
+				return nil,err
+			}
+			return rs, nil
 		}
 
-	case '*':
-		n, err := parseLen(p[1:])
+	case multi_bulk_reply:
+
+		n, err := ParseLen(p[1:])
 		if n < 0 || err != nil {
 			return nil, err
 		}
 		r := make([]interface{}, n)
 		for i := range r {
 			r[i], err = rc.readLineGetSizeAndReply()
-			if err != nil {
-				return nil, err
-			}
 		}
 		return r, nil
 	}
-	return nil,nil
-}
-
-func parseLen(p []byte) (int, error) {
-	if len(p) == 0 {
-		return -1, nil
-	}
-
-	if p[0] == '-' && len(p) == 2 && p[1] == '1' {
-		// handle $-1 and $-1 null replies.
-		return -1, nil
-	}
-
-	var n int
-	for _, b := range p {
-		n *= 10
-		if b < '0' || b > '9' {
-			return -1, nil
-		}
-		n += int(b - '0')
-	}
-
-	return n, nil
-}
-
-func parseInt(p []byte) (interface{}, error) {
-	if len(p) == 0 {
-		return 0, nil
-	}
-
-	var negate bool
-	if p[0] == '-' {
-		negate = true
-		p = p[1:]
-		if len(p) == 0 {
-			return 0, nil
-		}
-	}
-
-	var n int64
-	for _, b := range p {
-		n *= 10
-		if b < '0' || b > '9' {
-			return 0, nil
-		}
-		n += int64(b - '0')
-	}
-
-	if negate {
-		n = -n
-	}
-	return n, nil
+	return nil, nil
 }
