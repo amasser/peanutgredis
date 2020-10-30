@@ -58,13 +58,7 @@ func (rc *redisCli) query(command string) (interface{}, error) {
 		return nil, err
 	}
 
-	res, err := rc.readLineGetSizeAndReply()
-	if res == nil {
-		//键不存在
-		return nil, err
-	}
-
-	return res, err
+	return rc.readLineGetSizeAndReply()
 }
 
 func (rc *redisCli) close() {
@@ -76,6 +70,7 @@ func (rc *redisCli) readLineGetSizeAndReply() (interface{}, error) {
 
 	r := bufio.NewReader(rc.Conn.conn)
 	p, err := r.ReadSlice(redis_cut)
+
 	//减去 $ 和\r两个字节  例如 $5\r\n 此时p为$5\r p[i] == \r
 	if string(p[1:3]) == "-1" {
 		return nil, nil
@@ -122,10 +117,12 @@ func (rc *redisCli) readLineGetSizeAndReply() (interface{}, error) {
 	case bulk_reply:
 
 		if len(p) > 0 {
-			n, err := ParseLen(p)
-			if err != nil {
+			n, err := ParseLen(p[1:])
+
+			if err != nil || n<= 0{
 				return nil,err
 			}
+
 			rs := make([]byte, n)
 			ln, err := io.ReadFull(r, rs)
 			if err != nil || ln == 0 {

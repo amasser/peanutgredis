@@ -29,9 +29,9 @@ func TestGetString(t *testing.T)  {
 			t.Fatal(err.Error())
 		}
 		if result != nil && reflect.TypeOf(result).String() == "[]uint8" {
-			fmt.Println(string(result.([]uint8)))
+			//fmt.Println(string(result.([]uint8)))
 		} else {
-			fmt.Println(result)
+			//fmt.Println(result)
 		}
 	}
 	defer func() {
@@ -43,8 +43,8 @@ func TestSetString(t *testing.T)  {
 	var testSlice = []string{
 		"set a 1",
 		"set b 2",
-		//"set c 3",
-		//"del a",
+		"set c 3",
+		"del a",
 	}
 
 	var client redisCli

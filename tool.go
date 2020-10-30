@@ -4,7 +4,9 @@
  */
 package peanutRedis
 
-import "strconv"
+import (
+	"strconv"
+)
 
 func ParseInt(p []byte) (interface{}, error) {
 	if len(p) == 0 {
@@ -37,12 +39,13 @@ func ParseInt(p []byte) (interface{}, error) {
 
 func ParseLen(p []byte) (int, error) {
 
+
 	if len(p) == 0 {
+
 		return -1, nil
 	}
 
 	if p[0] == '-' && len(p) == 2 && p[1] == '1' {
-		// handle $-1 and $-1 null replies.
 		return -1, nil
 	}
 

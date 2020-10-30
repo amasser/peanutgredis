@@ -53,10 +53,10 @@ func ( rp *RedisPool) IniSet(dsn string) error {
 		if err != nil{
 			return err
 		}
-		//err = conn.SetKeepAlive(true)
-		//if err != nil{
-		//	return err
-		//}
+		err = conn.SetKeepAlive(true)
+		if err != nil{
+			return err
+		}
 		rp.pool<-conn
 	}
 	return  nil
