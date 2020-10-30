@@ -6,7 +6,6 @@ package peanutRedis
 
 import (
 	"net"
-	"time"
 )
 
 const POOL_MEMBER  = 2
@@ -30,23 +29,24 @@ type RedisPool struct {
 func ( rp *RedisPool) Get(dsn string) *net.TCPConn {
 	if len(rp.pool) == 0 {
 		rp.pool = POOL
-		go rp.iniSet(dsn)
+		go rp.IniSet(dsn)
+		for  {
+			if len(rp.pool) == POOL_MEMBER {
+				break
+			}
+		}
 	}
+
 	for  {
 		select {
 		case co:=<-rp.pool:
-			//fmt.Println(len(rp.pool))
-			time.Sleep(time.Duration(2)*time.Second)
 			return co
-			break
-		default:
-
 		}
 	}
 }
 
-func ( rp *RedisPool) iniSet(dsn string) error {
-	for i:=1 ;i<=2;i++ {
+func ( rp *RedisPool) IniSet(dsn string) error {
+	for i:=0 ;i<=2;i++ {
 		tcpAddr, err := net.ResolveTCPAddr(TCP4, dsn)
 		if err != nil{
 			return err
@@ -67,3 +67,5 @@ func ( rp *RedisPool) iniSet(dsn string) error {
 func ( rp *RedisPool) close( b *net.TCPConn)  {
 	rp.pool<-b
 }
+
+

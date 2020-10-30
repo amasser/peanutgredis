@@ -5,6 +5,7 @@
 package peanutRedis
 
 import (
+	"fmt"
 	"testing"
 )
 
@@ -14,6 +15,7 @@ func TestPool(t *testing.T)  {
 		"PING",
 	}
 	var client redisCli
+
 	for _,q := range testSlice {
 
 		conn := client.conn("localhost",6379)
@@ -27,10 +29,10 @@ func TestPool(t *testing.T)  {
 		t.Log(string(result.([]uint8)))
 
 	}
-
+	fmt.Println(len(client.pool.pool))
 	if len(client.pool.pool) != POOL_MEMBER {
 		t.Fatal("err")
 	}
-	//var loop chan int
-	//<-loop
 }
+
+

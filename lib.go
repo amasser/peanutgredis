@@ -74,12 +74,13 @@ func (rc *redisCli) query(command string) (interface{},error){
 		//键不存在
 		return nil,err
 	}
-	//rc.pool.close(rc.Conn.conn)
+	rc.close()
 	return res,err
 }
 
 func (rc *redisCli) close()  {
 	 rc.pool.close(rc.Conn.conn)
+	 rc.Conn.conn = nil
 }
 
 func Int16ToString(c int16) string {
