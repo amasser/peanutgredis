@@ -96,12 +96,12 @@ func (rc *redisCli) readLineGetSizeAndReply() (interface{}, error) {
 	case status_reply:
 
 		switch string(p[1:]) {
-		case "OK":
+		case OK:
 
-			return []byte("OK"), nil
-		case "PONG":
+			return []byte(OK), nil
+		case PONG:
 
-			return []byte("PONG"), nil
+			return []byte(PONG), nil
 		default:
 			return p[1:], nil
 		}

@@ -11,4 +11,6 @@ const integer_reply = ':'    //整数回复
 const bulk_reply = '$'       //批量回复
 const multi_bulk_reply = '*' //多条批量回复
 const redis_separator ="\r\n"//分隔符
-const redis_cut = '\n'
+const redis_cut = '\n'       //剪切符
+const PONG = "PONG"          //PING响应
+const OK = "OK"              //OK响应

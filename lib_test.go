@@ -29,9 +29,9 @@ func TestGetString(t *testing.T)  {
 			t.Fatal(err.Error())
 		}
 		if result != nil && reflect.TypeOf(result).String() == "[]uint8" {
-			//fmt.Println(string(result.([]uint8)))
+			fmt.Println(string(result.([]uint8)))
 		} else {
-			//fmt.Println(result)
+			fmt.Println(result)
 		}
 	}
 	defer func() {
