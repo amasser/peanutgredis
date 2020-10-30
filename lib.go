@@ -12,15 +12,18 @@ import (
 	"strings"
 )
 
-//状态回复（status reply）的第一个字节是 "+"
-//
-//错误回复（error reply）的第一个字节是 "-"
-//
-//整数回复（integer reply）的第一个字节是 ":"
-//
-//批量回复（bulk reply）的第一个字节是 "$"
-//
-//多条批量回复（multi bulk reply）的第一个字节是 "*" 相当于 $*n
+/**
+	状态回复（status reply）的第一个字节是 "+"
+
+	错误回复（error reply）的第一个字节是 "-"
+
+	整数回复（integer reply）的第一个字节是 ":"
+
+	批量回复（bulk reply）的第一个字节是 "$"
+
+	多条批量回复（multi bulk reply）的第一个字节是 "*" 相当于 $*n
+ */
+
 
 const TCP4 = "tcp4"
 
@@ -31,6 +34,7 @@ type Query struct {
 type Conn struct {
 	conn *net.TCPConn
 	dsn string
+	pool *RedisPool
 }
 
 type redisCli struct {
@@ -38,55 +42,19 @@ type redisCli struct {
 	Conn
 }
 
-
-
-//var reConn = make(chan redisCli)
-//var ConnChan = make(chan redisCli)
-
-func init()  {
-
-	//go func() {
-	//	for {
-	//		time.Sleep(time.Duration(5)*time.Second)
-	//		select {
-	//		case rc := <-reConn:
-	//			tcpAddr, _ := net.ResolveTCPAddr(TCP4, rc.Conn.dsn)
-	//			rc.Conn.conn, _ = net.DialTCP(TCP4, nil, tcpAddr)
-	//			ConnChan<-rc
-	//			fmt.Print("我重新连接了，啊")
-	//		default:
-	//			fmt.Println("连接好像正常，啊卢本伟牛逼")
-	//		}
-	//	}
-	//}()
-}
-
 func (rc redisCli) conn(host string, port int16) redisCli {
+
 	rc.Conn.dsn = host + ":" + Int16ToString(port)
-	tcpAddr, _ := net.ResolveTCPAddr(TCP4, rc.Conn.dsn)
-	rc.Conn.conn, _ = net.DialTCP(TCP4, nil, tcpAddr)
+	pool := &RedisPool{}
+	rc.Conn.conn =  pool.Get(rc.Conn.dsn)
+	rc.Conn.pool =  pool
 	return rc
 }
 
 func (rc redisCli) query(command string) (interface{},error){
 
-	//defer func() {
-	//
-	//	if r := recover(); r != nil {
-	//		fmt.Printf("捕获到的错误：%s\n", r)
-	//		//if rc.Conn.conn == nil {
-	//
-	//		//}
-	//	}
-	//}()
 	commandSlice := strings.Split(command, " ")
 	rc.Query.command = "*" + strconv.Itoa(len(commandSlice)) + "\r\n"
-	//check,_:=rc.query("PING")
-	//if  string(check.([]uint8)) != "PONG" {
-	//	reConn<-rc
-	//	rc = <-ConnChan
-	//	fmt.Println("我又让别人连上了")
-	//}
 
 	for _, v := range commandSlice {
 
@@ -111,7 +79,7 @@ func (rc redisCli) query(command string) (interface{},error){
 }
 
 func (rc redisCli) close()  {
-	defer rc.Conn.conn.Close()
+	 defer rc.pool.close(rc.Conn.conn)
 }
 
 func Int16ToString(c int16) string {
