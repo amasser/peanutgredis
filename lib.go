@@ -22,12 +22,12 @@ type Conn struct {
 	pool *RedisPool
 }
 
-type redisCli struct {
+type RedisCli struct {
 	Query
 	Conn
 }
 
-func (rc *redisCli) conn(host string, port int16) *redisCli {
+func (rc *RedisCli) conn(host string, port int16) *RedisCli {
 
 	rc.Conn.dsn = GetDsn(host,port)
 
@@ -40,7 +40,7 @@ func (rc *redisCli) conn(host string, port int16) *redisCli {
 	return rc
 }
 
-func (rc *redisCli) query(command string) (interface{}, error) {
+func (rc *RedisCli) query(command string) (interface{}, error) {
 	commandSlice := strings.Split(command, " ")
 	rc.Query.command = string(multi_bulk_reply) + strconv.Itoa(len(commandSlice)) + redis_separator
 
@@ -61,12 +61,12 @@ func (rc *redisCli) query(command string) (interface{}, error) {
 	return rc.readLineGetSizeAndReply()
 }
 
-func (rc *redisCli) close() {
+func (rc *RedisCli) close() {
 	rc.pool.close(rc.Conn.conn)
 	rc.Conn.conn = nil
 }
 
-func (rc *redisCli) readLineGetSizeAndReply() (interface{}, error) {
+func (rc *RedisCli) readLineGetSizeAndReply() (interface{}, error) {
 
 	r := bufio.NewReader(rc.Conn.conn)
 	p, err := r.ReadSlice(redis_cut)

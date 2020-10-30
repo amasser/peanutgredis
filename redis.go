@@ -28,7 +28,7 @@ type redis interface{
 }
 
 func (c c) Get(key string) interface{} {
-	var client redisCli
+	var client RedisCli
 	conn := client.conn("localhost",6379)
 	res,_:=conn.query("get" + key)
 	return res

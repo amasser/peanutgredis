@@ -21,7 +21,7 @@ func TestGetString(t *testing.T)  {
 	 	"getset getset 1",
 	 	"getset getset 1",
 	 }
-	var client redisCli
+	var client RedisCli
 	conn := client.conn("localhost",6379)
 	for _,q := range testSlice {
 		result,err := conn.query(q)
@@ -47,7 +47,7 @@ func TestSetString(t *testing.T)  {
 		"del a",
 	}
 
-	var client redisCli
+	var client RedisCli
 	conn := client.conn("localhost",6379)
 	for _,q := range testSlice {
 		result,err := conn.query(q)
@@ -77,7 +77,7 @@ func TestPING(t *testing.T)  {
 	var testSlice = []string{
 		"PING",
 	}
-	var client redisCli
+	var client RedisCli
 	conn := client.conn("localhost",6379)
 	time.Sleep(time.Duration(5)*time.Second)
 	for _,q := range testSlice {
@@ -105,7 +105,7 @@ func TestReConn(t *testing.T)  {
 		"getset getset 1",
 		"getset getset 1",
 	}
-	var client redisCli
+	var client RedisCli
 	conn := client.conn("localhost",6379)
 	for _,q := range testSlice {
 		_,err := conn.query(q)

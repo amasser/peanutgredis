@@ -15,7 +15,7 @@ func TestPool(t *testing.T)  {
 		"PING",
 		"PING",
 	}
-	var client redisCli
+	var client RedisCli
 
 	for _,q := range testSlice {
 
