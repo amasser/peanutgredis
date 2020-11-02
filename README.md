@@ -19,4 +19,5 @@
 # 功能实现列表
 - [x] query client
 - [x] 连接池
+- [连接池初版模型](https://github.com/realpeanut/peanutgredis/blob/main/WechatIMG47.jpeg)
 - [ ] auth认证
