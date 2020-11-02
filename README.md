@@ -3,7 +3,7 @@
 
 目前业内使用较多的是redigo package。阅读源码后，发现redigo作者自己实现了部分转码工作，而没有用官方package strconv,本项目以学习为主，后面转码功能将采用strconv package,顺便再研读一下strconv源码，后续也会增加bufio的源码阅读以及分享
 
-- [协议文档](http://redisdoc.com/topic/protocol.html#id8)
+- [redis协议文档](http://redisdoc.com/topic/protocol.html#id8)
 # 协议实现列表
 - [x] 网络层
 - [x] 请求
